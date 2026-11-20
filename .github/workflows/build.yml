@@ -1,0 +1,46 @@
+# Builds every role and publishes it so sessions download instead of building:
+#  - Nix store paths go to Cachix (cache name: repo variable CACHIX_CACHE, default "fleets";
+#    pushing needs the CACHIX_AUTH_TOKEN secret, reading a public cache needs nothing)
+#  - each role's NixOS system goes to ghcr.io/<owner>/fleetrc-<role>:latest as an OCI image
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  role:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # keep in sync with roles/default.nix
+        role: [base, nix, typst-cloudflare]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        # does nothing harmful until the cache exists; pushes once the secret is set
+        continue-on-error: true
+        with:
+          name: ${{ vars.CACHIX_CACHE || 'fleets' }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Build role outputs
+        run: |
+          nix-build --no-out-link -A hjemCli \
+            -A roles.${{ matrix.role }}.profile \
+            -A roles.${{ matrix.role }}.hjem \
+            -A roles.${{ matrix.role }}.home \
+            -A roles.${{ matrix.role }}.nixos
+      - name: Publish OCI image
+        if: github.event_name != 'pull_request'
+        run: |
+          stream=$(nix-build --no-out-link -A roles.${{ matrix.role }}.oci)
+          skopeo=$(nix-build --no-out-link -A pkgs.skopeo)/bin/skopeo
+          "$stream" > image.tar
+          "$skopeo" copy --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            docker-archive:image.tar \
+            "docker://ghcr.io/${{ github.repository_owner }}/fleetrc-${{ matrix.role }}:latest"
