@@ -1,0 +1,24 @@
+{
+  "pins": {
+    "nixpkgs": {
+      "type": "Channel",
+      "name": "nixos-unstable",
+      "artifact": "nixexprs.tar.xz",
+      "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1122823.04906337b6d5/nixexprs.tar.xz",
+      "hash": "sha256-vJoAj1xon3Mhfc8FZ5uBrPyZee9Eqa05gG/taXv6iZ8="
+    },
+    "yen": {
+      "type": "Git",
+      "repository": {
+        "type": "Git",
+        "url": "https://github.com/vic/yen.git"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "b2a64e9246b7861c07afd18bfe9adb43530a770a",
+      "url": null,
+      "hash": "sha256-UEfwBosL9rVlryuqKd7IlJKUJA546sMTTaxV3vhX594="
+    }
+  },
+  "version": 8
+}

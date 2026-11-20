@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Write every file fleet/main.ncl generates. With --check, fail if any committed copy differs.
+set -euo pipefail
+cd "$(dirname "$0")"
+json=$(nickel export fleet/main.ncl)
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+for path in $(jq -r '.files | keys[]' <<<"$json"); do
+  mkdir -p "$tmp/$(dirname "$path")"
+  jq -j --arg p "$path" '.files[$p]' <<<"$json" > "$tmp/$path"
+  case "$path" in *.sh) chmod +x "$tmp/$path" ;; esac
+done
+if [ "${1:-}" = --check ]; then
+  rc=0
+  for f in $(cd "$tmp" && find . -type f | sort); do
+    diff -u "${f#./}" "$tmp/$f" || { echo "drift: ${f#./} (run ./generate)"; rc=1; }
+  done
+  exit $rc
+fi
+cp -r "$tmp"/. .
+(cd "$tmp" && find . -type f | sort | sed 's|^\./|wrote |')

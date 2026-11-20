@@ -1,0 +1,101 @@
+{
+  "environments": {
+    "Default": {
+      "allow_package_managers": true,
+      "allowed_hosts": [],
+      "env_var_names": [],
+      "id": "env_01J2KSjw4r6Cngyn31NgY5AL",
+      "managed": false,
+      "network": "unrestricted",
+      "notes": ""
+    },
+    "Nix-Portable": {
+      "allow_package_managers": true,
+      "allowed_hosts": [],
+      "env_var_names": [
+        "FLY_API_TOKEN"
+      ],
+      "id": "env_01Hhrb1WTHn2DAKpFRkn652i",
+      "managed": true,
+      "network": "unrestricted",
+      "notes": "Hosts noted in the previous setup script: huggingface.co, *.huggingface.co, *.hf.co, registry.ollama.ai, ollama.com, github.com, api.github.com, objects.githubusercontent.com, typesafe.ai, docs.typesafe.ai",
+      "role": "nix"
+    },
+    "typst+Cloudflare": {
+      "allow_package_managers": true,
+      "allowed_hosts": [],
+      "env_var_names": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN"
+      ],
+      "id": "env_019PfPRc2Pnrbzka1N4TUPvX",
+      "managed": true,
+      "network": "unrestricted",
+      "notes": "",
+      "role": "typst-cloudflare"
+    },
+    "xD-dev": {
+      "allow_package_managers": true,
+      "allowed_hosts": [],
+      "env_var_names": [],
+      "id": "env_0178UhLCsp9VVvSZ1TtgtRWx",
+      "managed": false,
+      "network": "unrestricted",
+      "notes": ""
+    },
+    "xdgprobe": {
+      "allow_package_managers": true,
+      "allowed_hosts": [],
+      "env_var_names": [
+        "XDGPROBE"
+      ],
+      "id": "env_01Jz5dR5Q5GMbQMGPFav42yL",
+      "managed": false,
+      "network": "limited",
+      "notes": ""
+    }
+  },
+  "repo": "indeterminate-systems/000.02-fleetrc",
+  "roles": {
+    "nix": {
+      "description": "Nix work: building roles, pins, Nickel, NixOS-in-Docker experiments.",
+      "needs_hosts": [
+        "cache.nixos.org",
+        "channels.nixos.org",
+        "releases.nixos.org",
+        "github.com"
+      ],
+      "secrets": [
+        "FLY_API_TOKEN"
+      ],
+      "tools": [
+        "nickel",
+        "npins",
+        "jq",
+        "git",
+        "nixfmt",
+        "shellcheck"
+      ]
+    },
+    "typst-cloudflare": {
+      "description": "Typst documents published through Cloudflare (wrangler).",
+      "needs_hosts": [
+        "cache.nixos.org",
+        "releases.nixos.org",
+        "github.com",
+        "api.cloudflare.com"
+      ],
+      "secrets": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN"
+      ],
+      "tools": [
+        "typst",
+        "wrangler",
+        "nodejs",
+        "jq",
+        "git"
+      ]
+    }
+  }
+}
