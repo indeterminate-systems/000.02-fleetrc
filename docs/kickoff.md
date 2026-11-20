@@ -27,6 +27,7 @@ The setup script can't read the environment's secrets. Secrets come in at sessio
 - **Docker:** installed but not running. Start it with `setsid nohup dockerd &`. Docker Hub returns 429; use ghcr.io. Containers need `--network host` plus the session's CA bundle and HTTPS_PROXY.
 - **Real NixOS:** boots with systemd as PID 1 in a privileged container. Mount cgroup2 first (host is cgroup v1), and set `networking.useDHCP = false`. Live `switch-to-configuration switch` works.
 - **Not possible here:** nixos-anywhere (kernel has no kexec) and nix-infect (Firecracker supplies the kernel and init).
+- **kexec can't be added:** it is a kernel build option, and Firecracker supplies the kernel from outside (booted with `nomodule`), so no setup script can enable it. A session *can* still be the nixos-anywhere **deployer** for a real machine (kexec is only needed on the target), as long as outbound SSH works from sessions. That is untested; check before relying on it.
 
 ## Reference files (in this repo)
 - `docs/nix-portable-inventory.md`: full environment inventory
