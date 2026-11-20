@@ -43,5 +43,5 @@ Implemented in this repo: `bin/rc` with modes profile, hjem, home, nspawn and do
 ## First steps
 1. Repo: `indeterminate-systems/000.02-fleetrc` (exists). Also see `indeterminate-systems/nix-dev-environment-templates`.
 2. Smoke-test Nickel, npins (git pin), and organist in a session.
-3. Define two roles: `nix` (Nix-Portable) and `typst-cloudflare`. Add a bootstrap and 2 Yen rules.
+3. Roles: `base` and `nix` (Nix-Portable). Add 2 Yen rules.
 4. Generate a setup script for one environment and apply it, with approval.
