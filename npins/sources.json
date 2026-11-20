@@ -26,6 +26,19 @@
       "url": null,
       "hash": "sha256-+CPrP74GDJ63f7bgEFC9Av4hbxc7K9WUNv1ZVRifRe8="
     },
+    "kiri": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "vic",
+        "repo": "kiri"
+      },
+      "branch": "main",
+      "submodules": true,
+      "revision": "260cf66b9b56963a0170857c2b4306c38814e108",
+      "url": null,
+      "hash": "sha256-uW6FD0iGtpRbP3cA+r4P+eqiZw2X0Beae7P4MZwOHJ0="
+    },
     "nixpkgs": {
       "type": "Channel",
       "name": "nixos-unstable",
