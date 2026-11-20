@@ -7,7 +7,7 @@ One checked fleet for all Claude cloud environments: each environment gets a rol
     git clone https://github.com/indeterminate-systems/000.02-fleetrc /opt/fleetrc
     /opt/fleetrc/bin/rc <role> [mode]
 
-Roles are defined in [roles/default.nix](roles/default.nix): `base`, `nix`, `typst-cloudflare`.
+Roles are defined in [roles/default.nix](roles/default.nix): `base` and `nix`.
 
 | mode | what you get | systemd services | time in a fresh session* |
 |---|---|---|---|

@@ -24,8 +24,4 @@ in
       services.openssh.enable = true;
     };
   };
-
-  typst-cloudflare = {
-    packages = base ++ (with pkgs; [ typst wrangler nodejs_22 ]);
-  };
 }
