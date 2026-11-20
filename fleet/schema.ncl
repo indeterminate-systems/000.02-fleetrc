@@ -31,6 +31,6 @@
     allow_package_managers | Bool | default = true,
     # env var NAMES actually saved on the environment (from get_environment; values are never read)
     env_var_names | Array EnvVarName | default = [],
-    notes | String | default = "",
+    notes | Array String | default = [],
   },
 }

@@ -7,7 +7,11 @@ let S = import "schema.ncl" in
     network = 'unrestricted,
     env_var_names = ["FLY_API_TOKEN"],
     # The setup script held only this list of hosts as comments before fleetrc took over.
-    notes = "Hosts noted in the previous setup script: huggingface.co, *.huggingface.co, *.hf.co, registry.ollama.ai, ollama.com, github.com, api.github.com, objects.githubusercontent.com, typesafe.ai, docs.typesafe.ai",
+    notes = [
+      "hosts listed in the previous setup script:",
+      "huggingface.co *.huggingface.co *.hf.co registry.ollama.ai ollama.com",
+      "github.com api.github.com objects.githubusercontent.com typesafe.ai docs.typesafe.ai",
+    ],
   },
 
   "typst+Cloudflare" | S.Environment = {

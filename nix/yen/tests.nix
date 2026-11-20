@@ -17,7 +17,7 @@ let
     managed = true;
     allowed_hosts = [ ];
     allow_package_managers = true;
-    notes = "";
+    notes = [ ];
     id = "test";
   };
   cases = {

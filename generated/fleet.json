@@ -7,7 +7,7 @@
       "id": "env_01J2KSjw4r6Cngyn31NgY5AL",
       "managed": false,
       "network": "unrestricted",
-      "notes": ""
+      "notes": []
     },
     "Nix-Portable": {
       "allow_package_managers": true,
@@ -18,7 +18,11 @@
       "id": "env_01Hhrb1WTHn2DAKpFRkn652i",
       "managed": true,
       "network": "unrestricted",
-      "notes": "Hosts noted in the previous setup script: huggingface.co, *.huggingface.co, *.hf.co, registry.ollama.ai, ollama.com, github.com, api.github.com, objects.githubusercontent.com, typesafe.ai, docs.typesafe.ai",
+      "notes": [
+        "hosts listed in the previous setup script:",
+        "huggingface.co *.huggingface.co *.hf.co registry.ollama.ai ollama.com",
+        "github.com api.github.com objects.githubusercontent.com typesafe.ai docs.typesafe.ai"
+      ],
       "role": "nix"
     },
     "typst+Cloudflare": {
@@ -31,7 +35,7 @@
       "id": "env_019PfPRc2Pnrbzka1N4TUPvX",
       "managed": true,
       "network": "unrestricted",
-      "notes": "",
+      "notes": [],
       "role": "typst-cloudflare"
     },
     "xD-dev": {
@@ -41,7 +45,7 @@
       "id": "env_0178UhLCsp9VVvSZ1TtgtRWx",
       "managed": false,
       "network": "unrestricted",
-      "notes": ""
+      "notes": []
     },
     "xdgprobe": {
       "allow_package_managers": true,
@@ -52,7 +56,7 @@
       "id": "env_01Jz5dR5Q5GMbQMGPFav42yL",
       "managed": false,
       "network": "limited",
-      "notes": ""
+      "notes": []
     }
   },
   "repo": "indeterminate-systems/000.02-fleetrc",
