@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# fleetrc bootstrap: make a role available in this session.
+#   bin/rc <role> [mode]
+# modes (lightest first):
+#   profile  role packages into the default Nix profile (already on PATH)   [default]
+#   hjem     Hjem standalone: packages + managed files, generations
+#   home     build the Home Manager activation package (activate it yourself)
+#   nspawn   boot the role's NixOS with systemd-nspawn (systemd PID 1, no Docker)
+#   docker   boot the role's NixOS from its OCI image (pulls ghcr.io if published, else builds)
+# Env: FLEETRC_CACHE (default fleets), FLEETRC_REGISTRY (default ghcr.io/indeterminate-systems)
+set -euo pipefail
+ROLE=${1:?usage: rc <role> [profile|hjem|home|nspawn|docker]}
+MODE=${2:-profile}
+HERE=$(cd "$(dirname "$0")/.." && pwd)
+CACHE=${FLEETRC_CACHE:-fleets}
+REGISTRY=${FLEETRC_REGISTRY:-ghcr.io/indeterminate-systems}
+STATE=/var/lib/fleetrc
+mkdir -p "$STATE"
+
+# Use the fleet's binary cache when it exists (public Cachix caches need no token).
+NIXOPTS=()
+if curl -fsS -m 5 "https://$CACHE.cachix.org/nix-cache-info" >/dev/null 2>&1; then
+  KEY=$(curl -fsS -m 5 "https://app.cachix.org/api/v1/cache/$CACHE" | sed -n 's/.*"publicSigningKeys":\["\([^"]*\)".*/\1/p' || true)
+  if [ -n "$KEY" ]; then
+    NIXOPTS+=(--option extra-substituters "https://$CACHE.cachix.org" --option extra-trusted-public-keys "$KEY")
+  fi
+fi
+build() { nix-build "$HERE" -A "roles.$ROLE.$1" --no-out-link "${NIXOPTS[@]}"; }
+
+# cgroup2 in a private mount namespace: host cgroups are v1, current systemd needs v2.
+with_cgroup2() {
+  unshare --mount --cgroup bash -c '
+    mount --make-rprivate /
+    for m in $(grep " /sys/fs/cgroup/" /proc/mounts | awk "{print \$2}" | sort -r); do umount "$m"; done
+    umount /sys/fs/cgroup 2>/dev/null || true
+    mount -t cgroup2 cgroup2 /sys/fs/cgroup
+    exec "$@"' _ "$@"
+}
+
+case "$MODE" in
+  profile)
+    P=$(build profile)
+    nix profile remove "fleetrc-$ROLE" >/dev/null 2>&1 || true
+    nix profile add "$P"
+    echo "rc: role $ROLE packages are on PATH via /nix/var/nix/profiles/default/bin"
+    ;;
+  hjem)
+    CLI=$(nix-build "$HERE" -A hjemCli --no-out-link "${NIXOPTS[@]}")
+    "$CLI/bin/hjem" standalone switch --config "$(build hjem)"
+    echo 'rc: add to PATH: $HOME/.local/state/hjem/standalone/current-profile/bin'
+    ;;
+  home)
+    echo "rc: Home Manager generation: $(build home) (run its ./activate to apply)"
+    ;;
+  nspawn)
+    SYS=$(build nixos)
+    SD=$(nix-build "$HERE" -A pkgs.systemd --no-out-link "${NIXOPTS[@]}")
+    ROOT=$STATE/$ROLE-root; mkdir -p "$ROOT"/{nix,etc,var,root,usr}
+    touch "$ROOT/etc/os-release"
+    setsid bash -c "$(declare -f with_cgroup2); with_cgroup2 $SD/bin/systemd-nspawn --register=no --keep-unit -q \
+      -D $ROOT --bind=/nix --resolv-conf=off --timezone=off --link-journal=no -M fleetrc-$ROLE $SYS/init" \
+      >"$STATE/$ROLE-nspawn.log" 2>&1 </dev/null &
+    for _ in $(seq 60); do
+      P=$(pgrep -f "^/run/current-system/systemd/lib/systemd/systemd" -n || true)
+      if [ -n "$P" ]; then
+        S=$(nsenter -t "$P" -a /run/current-system/sw/bin/systemctl is-system-running 2>/dev/null || true)
+        case "$S" in running|degraded) break ;; esac
+      fi
+      sleep 0.5
+    done
+    echo "$P" >"$STATE/$ROLE-nspawn.pid"
+    echo "rc: NixOS ($ROLE) is ${S:-starting}. Shell: nsenter -t $P -a /run/current-system/sw/bin/bash -l"
+    ;;
+  docker)
+    docker info >/dev/null 2>&1 || { setsid nohup dockerd >"$STATE/dockerd.log" 2>&1 </dev/null & for _ in $(seq 30); do docker info >/dev/null 2>&1 && break; sleep 1; done; }
+    IMG="$REGISTRY/fleetrc-$ROLE:latest"
+    if ! docker pull -q "$IMG" >/dev/null 2>&1; then
+      IMG="fleetrc-$ROLE:latest"
+      "$(build oci)" | docker load -q
+    fi
+    docker rm -f "fleetrc-$ROLE" >/dev/null 2>&1 || true
+    docker run -d --name "fleetrc-$ROLE" --privileged --network host --cgroupns=private "$IMG" >/dev/null
+    for _ in $(seq 60); do
+      S=$(docker exec "fleetrc-$ROLE" /run/current-system/sw/bin/systemctl is-system-running 2>/dev/null || true)
+      case "$S" in running|degraded) break ;; esac
+      sleep 0.5
+    done
+    echo "rc: NixOS ($ROLE) from $IMG is ${S:-starting}. Shell: docker exec -it fleetrc-$ROLE /run/current-system/sw/bin/bash -l"
+    ;;
+  *) echo "rc: unknown mode $MODE" >&2; exit 2 ;;
+esac

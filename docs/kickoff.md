@@ -25,6 +25,8 @@ The setup script can't read the environment's secrets. Secrets come in at sessio
 - **GitHub:** tarball and API URLs return 403 for repos not attached to the session; plain git reads work. Use `git+https://...?shallow=1` flake inputs, or `npins add git ...` (never a `github` pin). The `nixpkgs` shortcut resolves through GitHub too, so take nixpkgs from a channel pin (`https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz`).
 - **Libraries that fetch GitHub tarballs in their own code** (sini/gen, which dungeon and Den are built on) need the `github-as-git.nix` scopedImport shim. Don't try intercepting proxy traffic: policy refuses it.
 - **Docker:** installed but not running. Start it with `setsid nohup dockerd &`. Docker Hub returns 429; use ghcr.io. Containers need `--network host` plus the session's CA bundle and HTTPS_PROXY.
+- **NixOS without Docker:** `systemd-nspawn` (from nixpkgs) boots it once it runs in a private mount namespace with cgroup2 mounted over `/sys/fs/cgroup`. Plain `unshare` + `chroot` of NixOS init exits 255 silently, so use nspawn.
+- **npins:** `github` pins and plain `git` pins on github.com both download tarballs (blocked). Add git pins with `--submodules` to force a real git fetch.
 - **Real NixOS:** boots with systemd as PID 1 in a privileged container. Mount cgroup2 first (host is cgroup v1), and set `networking.useDHCP = false`. Live `switch-to-configuration switch` works.
 - **Not possible here:** nixos-anywhere (kernel has no kexec) and nix-infect (Firecracker supplies the kernel and init).
 - **kexec can't be added:** it is a kernel build option, and Firecracker supplies the kernel from outside (booted with `nomodule`), so no setup script can enable it. A session *can* still be the nixos-anywhere **deployer** for a real machine (kexec is only needed on the target), as long as outbound SSH works from sessions. That is untested; check before relying on it.
@@ -34,6 +36,9 @@ The setup script can't read the environment's secrets. Secrets come in at sessio
 - `recipes/nixos-in-docker/`: NixOS-in-Docker recipe (`run.sh`, `flake.nix`)
 - `recipes/dungeon-git/`: dungeon via git with the shim, plus the Den minimal template
 - `tools/lock-github-to-git.sh`: rewrites a lock file's github nodes to git
+
+## Status (2026-11-19)
+Implemented in this repo: `bin/rc` with modes profile, hjem, home, nspawn and docker (all tested in a session), npins pins, 3 roles, and CI that publishes to Cachix and ghcr.io. Still to do: the Nickel role schema, Yen rules, and generated setup scripts.
 
 ## First steps
 1. Repo: `indeterminate-systems/000.02-fleetrc` (exists). Also see `indeterminate-systems/nix-dev-environment-templates`.
