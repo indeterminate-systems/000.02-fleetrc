@@ -15,6 +15,7 @@ let
   inherit (pkgs) lib;
   roleDefs = import ./roles { inherit pkgs; };
   hjemCli = pkgs.callPackage "${sources.hjem}/cli/package.nix" { };
+  kiri = pkgs.callPackage ./pkgs/kiri.nix { src = sources.kiri; };
 
   mkRole =
     name: def:
@@ -77,6 +78,6 @@ let
     };
 in
 {
-  inherit pkgs sources hjemCli;
+  inherit pkgs sources hjemCli kiri;
   roles = lib.mapAttrs mkRole roleDefs;
 }
